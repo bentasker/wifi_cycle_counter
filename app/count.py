@@ -2,8 +2,10 @@
 #
 # Cycle computer using Raspberry Pi GPIO Pins
 #
+# When invoked, this script will run forever, periodically
+# writing line protocol to stdout
 #
-
+# It's intended to be run as a Telegraf execd plugin
 
 import datetime
 import os
@@ -13,7 +15,7 @@ import time
 
 from math import pi
 
- 
+# Which GPIO should be used 
 GPIO_NUM = int(os.getenv("RPI_GPIO_NUM", 4))
 
 # This is based on what the computer does. I could probably
@@ -75,10 +77,7 @@ def aggregate_and_write(buffer):
         return
     
     # Otherwise calculate additional stats
-    
-    # Average cycles per poll period
     stats['mean'] = stats['total_cycles'] / len(buffer)
-    
     stats['rate'] = stats['total_cycles'] / time_period
     stats['calories'] = stats['total_cycles'] / CYCLES_PER_CALORIE
     
@@ -95,7 +94,8 @@ def aggregate_and_write(buffer):
             stats['speed'] = mean_speed * 0.036
         else:
             stats['speed'] = mean_speed
-        
+    
+    # Pass off for formatting and output
     output_lp(stats)
 
     
@@ -137,43 +137,46 @@ def write_to_influx(stats):
     print(lp)
 
 
-# Define the counter
-COUNTER = 0
-LAST_COUNTER = 0
+if __name__ == "__main__":
+    if POLL_INTERVAL < 1:
+        print(f"Poll interval must be at least 1 (current: {POLL_INTERVAL})", file=sys.stderr)
+        sys.exit(1)
 
-if POLL_INTERVAL < 1:
-    print("Poll interval must be at least 1")
-    sys.exit(1)
+    # If we're supposed to be calculating distance, 
+    # calculate the wheel circumference from the radius measurement
+    if CALCULATE_DISTANCE:
+        WHEEL_CIRCUMFERENCE = 2 * pi * WHEEL_RADIUS
+        if SPEED_FORMAT not in ["mph", "kph"]:
+            print("Unsupported speed format provided, using cm/s", file=sys.stderr)
+            SPEED_FORMAT = "cm/s"
+
+    # Setup GPIO
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(GPIO_NUM, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.add_event_detect(GPIO_NUM, GPIO.RISING, callback=detected_change)
+
+    # Define the counters etc
+    COUNTER = 0
+    LAST_COUNTER = 0
+    stats_buffer = []
+
+    # Start iterating
+    while True:
+        difference = COUNTER - LAST_COUNTER
+        LAST_COUNTER = COUNTER
+        now = time.time()
+        
+        stats_buffer.append([
+            now,
+            difference
+            ])
+
+        time.sleep(POLL_INTERVAL)
+        
+        # Have we reached a write interval? compare times
+        if (stats_buffer[-1][0] - stats_buffer[0][0]) > WRITE_INTERVAL:
+            aggregate_and_write(stats_buffer)
+            stats_buffer = []
 
 
-# If we're supposed to be calculating distance, 
-# calculate the wheel circumference from the radius measurement
-if CALCULATE_DISTANCE:
-    WHEEL_CIRCUMFERENCE = 2 * pi * WHEEL_RADIUS
-    if SPEED_FORMAT not in ["mph", "kph"]:
-        SPEED_FORMAT = "cm/s"
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(GPIO_NUM, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(GPIO_NUM, GPIO.RISING, callback=detected_change)
-
-stats_buffer = []
-while True:
-    difference = COUNTER - LAST_COUNTER
-    LAST_COUNTER = COUNTER
-    now = time.time()
-    
-    stats_buffer.append([
-        now,
-        difference
-        ])
-
-    time.sleep(POLL_INTERVAL)
-    
-    # Have we reached a write interval? compare times
-    if (stats_buffer[-1][0] - stats_buffer[0][0]) > WRITE_INTERVAL:
-        aggregate_and_write(stats_buffer)
-        stats_buffer = []
-
-
-GPIO.cleanup()
+    GPIO.cleanup()
