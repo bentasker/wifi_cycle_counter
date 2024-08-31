@@ -74,3 +74,10 @@ The script has a range of configuration vars, each of which can be set in the `e
 * `INFLUXDB_MEASUREMENT`: InfluxDB measurement to use in generate line protocol (default: "cycle_activity")
 * `INFLUXDB_EXTRA_TAGS`: Additional tags to inject into line protocol (default: "". Example "foo=bar,sed=zoo")
 * `PRECISION`: Number of decimal places to include in floats
+
+---
+
+### Copyright
+
+Copyright (c) 2024 B Tasker
+Released under [BSD 3-Clause License](https://opensource.org/license/BSD-3-Clause)
