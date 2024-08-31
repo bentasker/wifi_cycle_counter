@@ -84,7 +84,6 @@ GPIO.setup(GPIO_NUM, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.add_event_detect(GPIO_NUM, GPIO.RISING, callback=detected_change)
 
 stats_buffer = []
-last_write = time.time()
 while True:
     difference = COUNTER - LAST_COUNTER
     LAST_COUNTER = COUNTER
@@ -95,12 +94,12 @@ while True:
         difference
         ])
 
-    # Have we reached a write interval?
-    if (now - last_write) > WRITE_INTERVAL:
+    time.sleep(POLL_INTERVAL)
+    
+    # Have we reached a write interval? compare times
+    if (stats_buffer[-1][0] - stats_buffer[0][0]) > WRITE_INTERVAL:
         aggregate_and_write(stats_buffer)
         stats_buffer = []
-        last_write = now
 
-    time.sleep(POLL_INTERVAL)
 
 GPIO.cleanup()
