@@ -34,7 +34,13 @@ WRITE_NO_CHANGE= (os.getenv("CYCLES_WRITE_NOCHANGE", "true" ).lower()  == "true"
 CALCULATE_DISTANCE=(os.getenv("CALCULATE_DISTANCE", "true" ).lower()  == "true")
 WHEEL_RADIUS=float(os.getenv("WHEEL_RADIUS_CM", "5.6" ))
 SPEED_FORMAT=os.getenv("SPEED_FORMAT", "mph" ).lower()
- 
+
+# Line Protocol Config
+INFLUXDB_MEASUREMENT = os.getenv("INFLUXDB_MEASUREMENT", "cycle_activity")
+INFLUXDB_EXTRA_TAGS = os.getenv("INFLUXDB_EXTRA_TAGS", "")
+PRECISION = int(os.getenv("FLOAT_PRECISION", 2))
+
+
 def detected_change(channel):
     ''' A change to the GPIO pin was detected
     '''
@@ -90,13 +96,45 @@ def aggregate_and_write(buffer):
         else:
             stats['speed'] = mean_speed
         
-    write_to_influx(stats)
+    output_lp(stats)
+
     
 def write_to_influx(stats):
-    ''' Build line protocol and write out
+    ''' Build line protocol and write to stdout
     '''
-    print(stats)
     
+    ts = str(time.time_ns())
+    
+    # Start building the LP
+    # the tagset includes some elements on config
+    # allowing them to be used in queries if desired
+    lp_1 = [
+        INFLUXDB_MEASUREMENT,
+        f"poll_interval={POLL_INTERVAL}",
+        f"cycles_per_cal={CYCLES_PER_CALORIE}",       
+        ]
+
+    if CALCULATE_DISTANCE:
+        lp_1.append(f"wheel_radius={WHEEL_RADIUS}")
+        lp_1.append(f"speed_format={SPEED_FORMAT}")
+        
+    if len(INFLUXDB_EXTRA_TAGS) > 0:
+        lp_1.append(INFLUXDB_EXTRA_TAGS)
+    
+    fields = []
+    for m in stats:
+        if isinstance(stats[m], float):
+            fields.append(f"{m}={round(stats[m], PRECISION)}")
+        else:
+            fields.append(f"{m}={stats[m]}i")
+        
+    # concatenate to build a line of line protocol
+    lp_prefix = ",".join(lp_1)
+    lp_suffix = ",".join(fields)
+    lp = ' '.join([lp_prefix, lp_suffix, ts])
+    
+    # Print it
+    print(lp)
 
 
 # Define the counter
@@ -114,7 +152,6 @@ if CALCULATE_DISTANCE:
     WHEEL_CIRCUMFERENCE = 2 * pi * WHEEL_RADIUS
     if SPEED_FORMAT not in ["mph", "kph"]:
         SPEED_FORMAT = "cm/s"
-
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_NUM, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
