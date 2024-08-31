@@ -13,7 +13,7 @@
 [[inputs.execd]]
 
     # Update this to point to the script
-    command = ["/path/to/app/count.py"]
+    command = ["/usr/local/src/wifi_cycle_counter/app/count.py"]
     
     # Set Environment variables
     environment = [
