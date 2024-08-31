@@ -177,6 +177,3 @@ if __name__ == "__main__":
         if (stats_buffer[-1][0] - stats_buffer[0][0]) > WRITE_INTERVAL:
             aggregate_and_write(stats_buffer)
             stats_buffer = []
-
-
-    GPIO.cleanup()
