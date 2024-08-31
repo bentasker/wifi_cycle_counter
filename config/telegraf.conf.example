@@ -1,0 +1,45 @@
+[agent]
+    interval = "1m"
+    round_interval = true
+    metric_batch_size = 1000
+    metric_buffer_limit = 10000
+    flush_interval = "10s"
+    omit_hostname = true
+    
+    # TODO switch
+    debug = true
+    quiet = false
+
+[[inputs.execd]]
+
+    # Update this to point to the script
+    command = ["/path/to/app/count.py"]
+    
+    # Set Environment variables
+    environment = [
+       "INFLUXDB_EXTRA_TAGS=bike=exercise_bike",
+       "CYCLES_POLL_INTERVAL=5",
+       "CYCLES_WRITE_INTERVAL=60",
+       "CALCULATE_DISTANCE=true",
+       "WHEEL_RADIUS_CM=5.6",
+       "WRITE_NO_CHANGE=false",
+       "PYTHONUNBUFFERED=1"
+    ]
+    
+    # There should be no need to change these
+    signal = "none"
+    data_format = "influx"
+    
+
+[[outputs.influxdb_v2]]
+  urls = ["http://192.168.3.84:8086"]
+  token = ""
+  organization = ""
+  bucket = "testing_db"
+  
+  # We're likely writing a single line of LP 
+  # and we're running on an embedded device
+  # don't waste cycles compressing
+  content_encoding = "identity"
+  
+  
