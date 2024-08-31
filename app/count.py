@@ -81,6 +81,18 @@ def aggregate_and_write(buffer):
     stats['rate'] = stats['total_cycles'] / time_period
     stats['calories'] = stats['total_cycles'] / CYCLES_PER_CALORIE
     
+    # Average RPM 
+    # If I do 5 rotations in 20s, that should come out as 15/min
+    normalised_time = time_period / 60
+    # 0.33
+    stats['rpm'] = stats['total_cycles'] / normalised_time
+    # 5 / 0.33 = 15
+    # Conversely, if we've collected 100 cycles across 5 mins 
+    # rpm should be 20
+    #
+    # 300 / 60 = 5
+    # 100 / 5 = 20
+    
     # Calculate distance and speed if enabled
     if CALCULATE_DISTANCE:
         distance = WHEEL_CIRCUMFERENCE * stats['total_cycles']
