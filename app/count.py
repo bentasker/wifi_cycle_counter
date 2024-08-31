@@ -47,8 +47,9 @@ def aggregate_and_write(buffer):
         total_cycles += entry[1]
     
     rate = total_cycles / time_period
+    calories = total_cycles / CYCLES_PER_CALORIE
     
-    print(f"{total_cycles} cycles (avg {rate}/s) measured over {time_period}s")    
+    print(f"{total_cycles} cycles (avg {rate}/s, {calories}cal) measured over {time_period}s")
 
 
 # Define the counter
@@ -66,18 +67,10 @@ GPIO.add_event_detect(GPIO_NUM, GPIO.RISING, callback=detected_change)
 stats_buffer = []
 last_write = time.time()
 while True:
-    time.sleep(POLL_INTERVAL)
     difference = COUNTER - LAST_COUNTER
     LAST_COUNTER = COUNTER
     now = time.time()
     
-    # rate = difference / POLL_INTERVAL
-
-    # TODO: calorie calculation
-    #
-    # This one's a bit harder - do we calculate fractions
-    # or do we just carry any difference over?
-
     stats_buffer.append([
         now,
         difference
@@ -88,6 +81,7 @@ while True:
         aggregate_and_write(stats_buffer)
         stats_buffer = []
         last_write = now
-    
+
+    time.sleep(POLL_INTERVAL)
 
 GPIO.cleanup()
