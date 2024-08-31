@@ -75,6 +75,7 @@ def aggregate_and_write(buffer):
     stats['total_cycles'] = 0
     stats['max'] = 0
     stats['min'] = 999999
+    speeds = []
     for entry in buffer:
         stats['total_cycles'] += entry[1]
         
@@ -83,6 +84,11 @@ def aggregate_and_write(buffer):
             
         if entry[1] < stats['min']:
             stats['min'] = entry[1]
+            
+        if CALCULATE_DISTANCE:
+            # Calculate the speed in cm/s
+            speeds.append((WHEEL_CIRCUMFERENCE * entry[1]) / POLL_INTERVAL)
+        
         
     # Are supposed to continue to write if there's nothing to report?
     if stats['total_cycles'] == 0 and not WRITE_NO_CHANGE:
@@ -110,18 +116,26 @@ def aggregate_and_write(buffer):
         distance = WHEEL_CIRCUMFERENCE * stats['total_cycles']
         mean_speed = distance / time_period
         stats['distance_cm'] = distance
-        
-        # Convert from cm/s
-        if SPEED_FORMAT == "mph":
-            stats['speed'] = mean_speed / 44.704
-        elif SPEED_FORMAT == "kph":
-            stats['speed'] = mean_speed * 0.036
-        else:
-            stats['speed'] = mean_speed
+        stats['speed'] = convert_speed(mean_speed)
+        stats['max_speed'] = convert_speed(max(speeds))
     
     # Pass off for formatting and output
     output_lp(stats)
 
+
+def convert_speed(sp):
+    ''' Convert a speed from cm/s to something else
+    '''
+    # Convert from cm/s
+    if SPEED_FORMAT == "mph":
+         return sp / 44.704
+    elif SPEED_FORMAT == "kph":
+        return sp * 0.036
+    else:
+        return sp   
+    
+    
+    
     
 def output_lp(stats):
     ''' Build line protocol and write to stdout
