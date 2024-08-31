@@ -10,6 +10,9 @@ import os
 import RPi.GPIO as GPIO
 import sys
 import time
+
+from math import pi
+
  
 GPIO_NUM = int(os.getenv("RPI_GPIO_NUM", 4))
 
@@ -25,6 +28,12 @@ POLL_INTERVAL=int(os.getenv("CYCLES_POLL_INTERVAL", 5 ))
 WRITE_INTERVAL=int(os.getenv("CYCLES_WRITE_INTERVAL", 30 ))
 WRITE_NO_CHANGE= (os.getenv("CYCLES_WRITE_NOCHANGE", "true" ).lower()  == "true")
 
+# Do we want to calculate distance and speed? 
+# On an exercise bike it's a fairly meaningless number, but can be interesting
+# purely as an indicator
+CALCULATE_DISTANCE=(os.getenv("CALCULATE_DISTANCE", "true" ).lower()  == "true")
+WHEEL_RADIUS=float(os.getenv("WHEEL_RADIUS_CM", "5.6" ))
+SPEED_FORMAT=os.getenv("SPEED_FORMAT", "mph" ).lower()
  
 def detected_change(channel):
     ''' A change to the GPIO pin was detected
@@ -66,9 +75,23 @@ def aggregate_and_write(buffer):
     
     stats['rate'] = stats['total_cycles'] / time_period
     stats['calories'] = stats['total_cycles'] / CYCLES_PER_CALORIE
+    
+    # Calculate distance and speed if enabled
+    if CALCULATE_DISTANCE:
+        distance = WHEEL_CIRCUMFERENCE * stats['total_cycles']
+        mean_speed = distance / time_period
+        stats['distance_cm'] = distance
+        
+        # Convert from cm/s
+        if SPEED_FORMAT == "mph":
+            stats['speed'] = mean_speed / 44.704
+        elif SPEED_FORMAT == "kph":
+            stats['speed'] = mean_speed * 0.036
+        else:
+            stats['speed'] = mean_speed
+        
     write_to_influx(stats)
     
-
 def write_to_influx(stats):
     ''' Build line protocol and write out
     '''
@@ -83,6 +106,15 @@ LAST_COUNTER = 0
 if POLL_INTERVAL < 1:
     print("Poll interval must be at least 1")
     sys.exit(1)
+
+
+# If we're supposed to be calculating distance, 
+# calculate the wheel circumference from the radius measurement
+if CALCULATE_DISTANCE:
+    WHEEL_CIRCUMFERENCE = 2 * pi * WHEEL_RADIUS
+    if SPEED_FORMAT not in ["mph", "kph"]:
+        SPEED_FORMAT = "cm/s"
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_NUM, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
