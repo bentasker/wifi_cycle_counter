@@ -99,7 +99,7 @@ def aggregate_and_write(buffer):
     output_lp(stats)
 
     
-def write_to_influx(stats):
+def output_lp(stats):
     ''' Build line protocol and write to stdout
     '''
     
