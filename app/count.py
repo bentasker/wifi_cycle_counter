@@ -37,19 +37,38 @@ def detected_change(channel):
 def aggregate_and_write(buffer):
     ''' Take a stats buffer and generate a datapoint from it
     '''
+    stats = {}
     
     first_time = buffer[0][0]
     end_time = buffer[-1][0]
     time_period = end_time - first_time
     
-    total_cycles = 0
+    stats['total_cycles'] = 0
+    stats['max'] = 0
+    stats['min'] = 999999
     for entry in buffer:
-        total_cycles += entry[1]
+        stats['total_cycles'] += entry[1]
+        
+        if entry[1] > stats['max']:
+            stats['max'] = entry[1]
+            
+        if entry[1] < stats['min']:
+            stats['min'] = entry[1]
+        
     
-    rate = total_cycles / time_period
-    calories = total_cycles / CYCLES_PER_CALORIE
+    # Average cycles per poll period
+    stats['mean'] = stats['total_cycles'] / len(buffer)
     
-    print(f"{total_cycles} cycles (avg {rate}/s, {calories}cal) measured over {time_period}s")
+    stats['rate'] = stats['total_cycles'] / time_period
+    stats['calories'] = stats['total_cycles'] / CYCLES_PER_CALORIE
+    write_to_influx(stats)
+    
+
+def write_to_influx(stats):
+    ''' Build line protocol and write out
+    '''
+    print(stats)
+    
 
 
 # Define the counter
