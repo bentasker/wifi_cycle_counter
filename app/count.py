@@ -55,6 +55,11 @@ def aggregate_and_write(buffer):
         if entry[1] < stats['min']:
             stats['min'] = entry[1]
         
+    # Are supposed to continue to write if there's nothing to report?
+    if stats['total_cycles'] == 0 and not WRITE_NO_CHANGE:
+        return
+    
+    # Otherwise calculate additional stats
     
     # Average cycles per poll period
     stats['mean'] = stats['total_cycles'] / len(buffer)
