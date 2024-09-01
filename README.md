@@ -28,7 +28,7 @@ adduser telegraf gpio
 
 Clone this repo down
 ```sh
-git clone <repo url>
+git clone https://github.com/bentasker/wifi_cycle_counter.git
 sudo mv wifi_cycle_counter /usr/local/src/
 ```
 
