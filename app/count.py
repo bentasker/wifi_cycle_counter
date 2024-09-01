@@ -132,6 +132,14 @@ def convert_speed(sp):
          return sp / 44.704
     elif SPEED_FORMAT == "kph":
         return sp * 0.036
+    # I wouldn't suggest using these, the numbers may
+    # make you feel *really* bad
+    elif SPEED_FORMAT == "parsec_hour":
+        return (sp / 3085677599999995400) * 3600
+    elif SPEED_FORMAT == "badgers_hour":
+        return (sp / 80) * 3600
+    elif SPEED_FORMAT == "lightyear_hour":
+        return (sp / 946073047258094000) * 3600
     else:
         return sp   
     
@@ -189,7 +197,7 @@ if __name__ == "__main__":
     # calculate the wheel circumference from the radius measurement
     if CALCULATE_DISTANCE:
         WHEEL_CIRCUMFERENCE = 2 * pi * WHEEL_RADIUS
-        if SPEED_FORMAT not in ["mph", "kph"]:
+        if SPEED_FORMAT not in ["mph", "kph", "parsec_hour", "badgers_hour", "lightyear_hour"]:
             print("Unsupported speed format provided, using cm/s", file=sys.stderr)
             SPEED_FORMAT = "cm/s"
 
