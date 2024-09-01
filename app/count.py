@@ -177,6 +177,10 @@ def output_lp(stats):
 
 
 if __name__ == "__main__":
+    # Define the counters etc
+    COUNTER = 0
+    LAST_COUNTER = 0    
+    
     if POLL_INTERVAL < 1:
         print(f"Poll interval must be at least 1 (current: {POLL_INTERVAL})", file=sys.stderr)
         sys.exit(1)
@@ -199,9 +203,6 @@ if __name__ == "__main__":
         bouncetime=POLL_DEBOUNCE_MS
         )
 
-    # Define the counters etc
-    COUNTER = 0
-    LAST_COUNTER = 0
     stats_buffer = []
 
     # Start iterating
