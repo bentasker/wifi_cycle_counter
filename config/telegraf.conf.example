@@ -33,7 +33,7 @@
   urls = ["http://192.168.3.84:8086"]
   token = ""
   organization = ""
-  bucket = "testing_db"
+  bucket = "telegraf"
   
   # We're likely writing a single line of LP 
   # and we're running on an embedded device
