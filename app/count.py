@@ -38,6 +38,7 @@ CYCLES_PER_CALORIE=int(os.getenv("CYCLES_PER_CALORIE", 7 ))
  
 # How often should we check counts
 POLL_INTERVAL=int(os.getenv("CYCLES_POLL_INTERVAL", 5 ))
+POLL_DEBOUNCE_MS=int(os.getenv("POLL_DEBOUNCE_MS", 100 ))
 
 # How often should we write out stats?
 WRITE_INTERVAL=int(os.getenv("CYCLES_WRITE_INTERVAL", 30 ))
@@ -191,7 +192,12 @@ if __name__ == "__main__":
     # Setup GPIO
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(GPIO_NUM, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.add_event_detect(GPIO_NUM, GPIO.RISING, callback=detected_change)
+    GPIO.add_event_detect(
+        GPIO_NUM, 
+        GPIO.RISING, 
+        callback=detected_change,
+        bouncetime=POLL_DEBOUNCE_MS
+        )
 
     # Define the counters etc
     COUNTER = 0
