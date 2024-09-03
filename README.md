@@ -2,7 +2,17 @@
 
 This is a simple script to use a Raspberry Pi's GPIO pins in conjunction with a reed switch to create a simple cycle computer, which will write stats out to an [InfluxDB](https://github.com/influxdata/influxdb) instance.
 
-It was created with an exercise bike in mind: I have an under-desk setup and it was bugging me that I couldn't see how much use I actually make of it.
+It was created with an exercise bike in mind: I have an under-desk setup and it was bugging me that I couldn't see how much use I actually make of it, so I decided to [build a replacement cycle computer](https://www.bentasker.co.uk/posts/blog/house-stuff/building-a-smart-wifi-cycle-computer-with-rpi-influxdb-and-grafana.html)
+
+---
+
+### Pre-Requisites
+
+It's assumed that you already have
+
+* A Raspberry Pi (I prototyped on a 3 and then then used a Zero 2W)
+* Installed an OS and configured connectivity on your Pi ([examples](https://raspberrytips.com/raspberry-pi-wifi-setup/))
+* Installed the [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) library
 
 ---
 
