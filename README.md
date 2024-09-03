@@ -36,7 +36,7 @@ Add the `telegraf` user to the `gpio` group
 adduser telegraf gpio
 ```
 
-Clone this repo down
+Clone this repo down and move into place
 ```sh
 git clone https://github.com/bentasker/wifi_cycle_counter.git
 sudo mv wifi_cycle_counter /usr/local/src/
@@ -48,8 +48,8 @@ sudo mv wifi_cycle_counter /usr/local/src/
 
 The easiest way to get started is to copy `config/telegraf.conf.example` to `/etc/telegraf/telegraf.conf` and then edit it
 ```sh 
-sudo cp config/telegraf.conf.example /etc/telegraf/telegraf.con
-sudo nano /etc/telegraf/telegraf.con
+sudo cp /usr/local/src/config/telegraf.conf.example /etc/telegraf/telegraf.conf
+sudo nano /etc/telegraf/telegraf.conf
 ```
 
 You will need to
@@ -84,6 +84,12 @@ The script has a range of configuration vars, each of which can be set in the `e
 * `INFLUXDB_MEASUREMENT`: InfluxDB measurement to use in generate line protocol (default: "cycle_activity")
 * `INFLUXDB_EXTRA_TAGS`: Additional tags to inject into line protocol (default: "". Example "foo=bar,sed=zoo")
 * `PRECISION`: Number of decimal places to include in floats
+
+---
+
+### Visualisation
+
+An example Grafana dashboard [is provided](example/grafana_dashboard.json).
 
 ---
 
